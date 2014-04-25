@@ -1,0 +1,159 @@
+<?php
+/**
+ * @file
+ * Custom opening hours module for Harvard Libraries.
+ *
+ * Loads referenced nodes that have hours defined via the opening_hours 
+ * module, and displays those hours as a compound widget.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function harvard_library_hours_field_formatter_info() {
+  return array(
+    'harvard_library_hours_ref_formatter' => array(
+      'label' => t('Harvard Library Opening Hours'),
+      'field types' => array('node_reference'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function harvard_library_hours_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  return array(harvard_library_hours_prepare_render($entity, $items));
+}
+
+/**
+ * Implements hook_theme().
+ */
+function harvard_library_hours_theme($existing, $type, $theme, $path) {
+  return array(
+    'harvard_library_hours_node_underscore_template' => array(
+      'variables' => array(),
+      'path' => $path . '/templates',
+      'template' => 'harvard_library_hours_node_underscore_template',
+    ),
+    'harvard_library_hours_node_widget' => array(
+      'variables' => array(
+        'node' => NULL,
+        'referenced_nodes' => array(),
+      ),
+      'path' => $path . '/templates',
+      'template' => 'harvard_library_hours_node_widget',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_ctools_plugin_directory().
+ */
+function harvard_library_hours_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Generate render array to display Harvard hours.
+ *
+ * @param stdClass $node
+ *   Node object that hosts the hours.
+ * @param array $items
+ *   The values of the node reference field to use.
+ *
+ * @returns array
+ *   Prepared render array.
+ */
+function harvard_library_hours_prepare_render($node, $items) {
+  $element = array();
+
+  // If there are no related nodes, there's nothing to render.
+  if (empty($items)) {
+    return $element;
+  }
+
+  // Attach the standard opening hours presentation code.
+  $element['#attached'] = opening_hours_js_attach_presentation();
+  //KB added:
+   
+
+
+  $path = drupal_get_path('module', 'harvard_library_hours');
+  $element['#attached']['css'][] = $path . '/css/harvard_library_hours_node_widget.css';
+  $element['#attached']['js'][] = $path . '/js/harvard_library_hours_node_widget.js';
+
+  // The output is rendered via the harvard_library_hours_node_widget 
+  // template file.
+  $element[] = array(
+    '#theme' => 'harvard_library_hours_node_widget',
+    '#node' => $node,
+    '#referenced_nodes' => harvard_library_hours_load_referenced_nodes($items),
+  );
+
+  return $element;
+}
+
+/**
+ * Get metadata for referenced nodes.
+ */
+function harvard_library_hours_load_referenced_nodes($values) {
+  // Get the nids from the field value array.
+  // This could be done prettier with array_map and a lambda, but I'm 
+  // not sure if we can use that here, since it requires PHP 5.3.
+  $nids = array();
+  foreach ($values as $value) {
+    if (!empty($value['nid'])) {
+      $nids[] = $value['nid'];
+    }
+  }
+
+  if (empty($nids)) {
+    return;
+  }
+
+  // Load the nodes in question.
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('entity_id', $nids, 'IN')
+    ->propertyCondition('status', 1);
+
+  $result = $query->execute();
+
+  // Load fields for each node.
+  // Currently, this loads all fields. It would be faster to only load 
+  // the fields we need for rendering, but that would require us to 
+  // hardcode these here, which would be brittle to future changes in 
+  // the fields. See 
+  // http://timonweb.com/loading-only-one-field-from-an-entity-or-node 
+  // for details on how to load single fields.
+  $nodes = $result['node'];
+  field_attach_load('node', $nodes);
+
+  // Sort the loaded node in the order they were attached.
+  $sortedNodes = array();
+  foreach ($nids as $nid) {
+    if (!empty($nodes[$nid])) {
+      $sortedNodes[$nid] = $nodes[$nid];
+    }
+  }
+
+  return $sortedNodes;
+}
+
+/**
+ * Preprocess variables for the harvard_library_hours_node_widget template.
+ */
+function template_preprocess_harvard_library_hours_node_widget(&$variables) {
+  // Only add templates the first time this is run on a page.
+  static $once;
+  if (!$once) {
+    $once = TRUE;
+
+    // Add our client-side templates to the page.
+    $variables['preface'] = theme('opening_hours_presentation');
+    $variables['preface'] .= theme('harvard_library_hours_node_underscore_template');
+  }
+}

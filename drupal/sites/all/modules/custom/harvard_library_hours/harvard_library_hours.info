@@ -1,0 +1,3 @@
+name = Harvard Library Opening Hours
+description = Custom module implementing shared opening hours for Harvard Libraries.
+core = 7.x

@@ -1,0 +1,69 @@
+.harvard-library-hours-node-widget {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 12px;
+  /*margin: 0 21px;*/
+  /*width: 940px;*/ 
+}
+
+
+.view-all-library-hours-updated table {
+  width: 80%;
+  margin-left:0px;
+}
+
+.view-all-library-hours-updated .views-row {
+  margin-bottom:40px;
+}
+.view-all-library-hours-updated .asteriskednote {
+  margin-left:9px;
+}
+.harvard-library-hours-node-widget .header {
+  text-align: center;
+  font-size:12px;
+  font-weight:bold;
+ }
+
+
+.harvard-library-hours-node-widget .navigation {
+  padding-bottom:20px;
+}
+
+.harvard-library-hours-node-widget tr {
+  border-bottom:dotted 1px #d6d6d6;
+}
+
+.harvard-library-hours-node-widget .daynames,
+.harvard-library-hours-node-widget .title {
+  font-weight: bold;
+}
+
+.harvard-library-hours-node-widget .daynames {
+  background-color: #f2f2f2;
+  border-top: 1px solid #d6d6d6;
+}
+.harvard-library-hours-node-widget .from_to_date {
+  display: inline-block;
+  width: 175px;
+}
+.harvard-library-hours-node-widget .next {
+  margin-left:50px;
+}
+.harvard-library-hours-node-widget .prev {
+  margin-right:50px;
+}
+.harvard-library-hours-node-widget .highlight_today {
+  background-color: #8996A0;
+  color: #FFF;
+}
+.harvard-library-hours-node-widget .notice-star {
+  display:none;
+}
+/*added by KB for tisch*/
+.view-library-hours .views-field-title{
+  padding: 1em 0 0 1em;
+}
+
+a.prev.disabled{
+  display: none;
+}
